@@ -19,7 +19,7 @@
         var ys = []
         var bestfit = []
 
-        //Create the model
+        //Create the tf model
         const model = tf.sequential();
         model.add(tf.layers.leakyReLU({units: 128, inputShape: [1]}));
         model.add(tf.layers.leakyReLU({units: 128, inputShape: [128]})); 
