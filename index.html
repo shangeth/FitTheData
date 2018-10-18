@@ -1,0 +1,72 @@
+<html>
+  <head>
+    <title>FitTheData</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.2"> </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"> </script>
+  </head>
+  <body>
+    x: <input type="text" id="x" />
+    y: <input type="text" id="y" />
+    #Iterations: <input type="text" id="iters" />
+    <input type="button" id="append" value="submit">
+
+    <div style="padding:50px">
+        <canvas id="myChart" width="600" height="300"></canvas>
+    </div>
+
+    <script>
+        var xs = []
+        var ys = []
+        var bestfit = []
+
+        //Create the model
+        const model = tf.sequential();
+        model.add(tf.layers.leakyReLU({units: 128, inputShape: [1]}));
+        model.add(tf.layers.leakyReLU({units: 128, inputShape: [128]})); 
+        model.add(tf.layers.dense({units: 1, inputShape: [128]})); 
+        model.compile({loss: 'meanSquaredError', optimizer: 'adam'});
+
+
+        document.getElementById('x').value = 1;
+
+
+        document.getElementById("append").onclick = function(){
+            var x = document.getElementById("x").value;
+            var y = document.getElementById("y").value;
+            var iters = document.getElementById("iters").value;
+
+            xs.push(x)
+            ys.push(y)
+            document.getElementById('x').value = parseInt(x)+1;
+            document.getElementById('y').value = "";
+            document.getElementById('iters').value = parseInt(iters);
+
+
+
+            model.fit(tf.tensor(xs), tf.tensor(ys), {epochs:iters}).then(() => {
+                bestfit = model.predict(tf.tensor(xs, [xs.length, 1])).dataSync();
+                var ctx = document.getElementById("myChart").getContext('2d');
+                var myChart = new Chart(ctx, {
+                    type: 'line',
+                    options: {scales:{yAxes: [{ticks: {beginAtZero: true}}]}},
+                    data: {
+                        labels: xs,
+                        datasets: [
+                        {
+                            label: 'Original Data',
+                            data: ys,
+                            borderWidth: 1,
+                        },{
+                            label: 'Best Fit line',
+                            data: bestfit,
+                            borderWidth: 1,
+                            borderColor: '#FF0000',
+                            backgroundColor: 'rgba(1,1,1,0)'
+                        },]
+                    },
+                });
+              });
+        }
+    </script>
+  </body>
+</html>
